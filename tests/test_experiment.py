@@ -1,8 +1,11 @@
 import unittest
+from types import SimpleNamespace
 
+from a2a.types import Message, Part, Role, TextPart
 from PIL import Image
 
 from quantum_experiment_agent.agent import (
+    extract_final_text,
     format_experiment_summary,
     is_qaoa_maxcut_request,
     should_submit_hardware,
@@ -11,6 +14,18 @@ from quantum_experiment_agent.experiment_engine import parse_maxcut_graph, run_m
 
 
 class ExperimentTests(unittest.TestCase):
+    def test_final_text_is_selected_over_canvas_artifact(self):
+        final_message = Message(
+            message_id="final-message",
+            role=Role.agent,
+            parts=[Part(root=TextPart(text="Complete IBM Quantum submission details"))],
+        )
+        response = SimpleNamespace(
+            event=(SimpleNamespace(history=[final_message]),),
+            last_message=SimpleNamespace(text="![Canvas](agentstack://artifact-id)"),
+        )
+        self.assertEqual(extract_final_text(response), "Complete IBM Quantum submission details")
+
     def test_routing_and_execution_policy(self):
         local = "Use QAOA to solve Max-Cut on a 5-node graph using the local simulator"
         hardware = "Compare QAOA Max-Cut with real IBM Quantum hardware"
