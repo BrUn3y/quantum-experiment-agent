@@ -1,0 +1,26 @@
+[project]
+name = "quantum-experiment-agent"
+version = "0.1.0"
+description = "Development-stage hybrid quantum experiment agent for Agent Stack"
+readme = "README.md"
+authors = [{ name = "Edgar Bruney" }]
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "agentstack-sdk==0.4.0rc1",
+    "beeai_framework[a2a]>=0.1.76",
+    "matplotlib>=3.7.0",
+    "qiskit>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "mcp<2",
+]
+
+[project.scripts]
+server = "quantum_experiment_agent.agent:run"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
