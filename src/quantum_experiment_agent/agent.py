@@ -123,6 +123,26 @@ def format_experiment_summary(result: QAOAExperimentResult) -> str:
     )
 
 
+def extract_final_text(response: object) -> str:
+    """Return the final A2A task message instead of a Canvas artifact."""
+    events = getattr(response, "event", ())
+    if not isinstance(events, (tuple, list)):
+        events = (events,)
+    for event in reversed(events):
+        history = getattr(event, "history", None) or ()
+        for message in reversed(history):
+            try:
+                text = get_message_text(message).strip()
+            except Exception:
+                continue
+            if text:
+                return text
+
+    last_message = getattr(response, "last_message", None)
+    text = getattr(last_message, "text", "")
+    return text.strip() if isinstance(text, str) else str(response)
+
+
 async def _submit_to_computing(request: str, qasm: str) -> str:
     host = os.getenv("COMPUTING_HOST", "127.0.0.1")
     port = int(os.getenv("COMPUTING_PORT", "8003"))
@@ -133,7 +153,7 @@ async def _submit_to_computing(request: str, qasm: str) -> str:
         f"Original experiment request: {request}\n\n```qasm\n{qasm}\n```"
     )
     response = await agent.run(execution_request)
-    return response.last_message.text if hasattr(response, "last_message") else str(response)
+    return extract_final_text(response)
 
 
 async def _upload_dashboard(result: QAOAExperimentResult) -> tuple[AgentArtifact | None, str]:
